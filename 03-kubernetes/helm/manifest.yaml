@@ -1,0 +1,111 @@
+---
+# Source: intern/templates/namespace.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: intern
+---
+# Source: intern/templates/imagePullSecret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: intern-image-pull-secret
+  namespace: intern
+type: kubernetes.io/dockerconfigjson
+stringData:
+  .dockerconfigjson: |
+    {
+      "auths": {
+        "https://index.docker.io/v1/": {
+          "username": "msvetnikov",
+          "email": "msvet813@gmail.com",
+          "password": ""
+        }
+      }
+    }
+---
+# Source: intern/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: intern
+  namespace: intern
+data:
+  AUTHOR: "Максим Светников"
+---
+# Source: intern/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: intern
+  namespace: intern
+  labels:
+    app: intern
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 8000
+  selector:
+    app: intern
+---
+# Source: intern/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: intern
+  namespace: intern
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: intern
+  template:
+    metadata:
+      labels:
+        app: intern
+    spec:
+      imagePullSecrets:
+        - name: intern-image-pull-secret
+      containers:
+        - name: intern
+          image: "docker.io/msvetnikov/intern:2.0"
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: intern
+          ports:
+            - containerPort: 8000
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+---
+# Source: intern/templates/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: intern
+  namespace: intern
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+  - host: intern.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: intern
+            port:
+              number: 80

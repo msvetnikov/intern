@@ -1,0 +1,54 @@
+---
+namespace: intern
+
+selector:
+  app: intern
+
+deployment:
+  name: intern
+  replicaCount: 3
+
+image:
+  registry: docker.io
+  repository: msvetnikov/intern
+  tag: "2.0"
+  pullPolicy: IfNotPresent
+  pullSecret:
+    name: intern-image-pull-secret
+    registry: https://index.docker.io/v1/
+    username: "msvetnikov"
+    email: "msvet813@gmail.com"
+    password: ""
+
+container:
+  name: intern
+  port: 8000
+  env:
+    - name: AUTHOR
+      value: "Максим Светников"
+  readinessProbe:
+    path: /health
+    port: 8000
+    initialDelaySeconds: 5
+    periodSeconds: 10
+  livenessProbe:
+    path: /health
+    port: 8000
+    initialDelaySeconds: 15
+    periodSeconds: 20
+
+configmap:
+  name: intern
+  data:
+    AUTHOR: "Максим Светников"
+
+service:
+  name: intern
+  type: ClusterIP
+  port: 80
+  targetPort: 8000
+
+ingress:
+  name: intern
+  host: intern.example.com
+  path: /
