@@ -1,0 +1,8 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: intern
+  namespace: intern
+data:
+  AUTHOR: "Максим Светников"

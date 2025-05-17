@@ -1,0 +1,39 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: intern
+  namespace: intern
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: intern
+  template:
+    metadata:
+      labels:
+        app: intern
+    spec:
+      imagePullSecrets:
+        - name: intern-image-pull-secret
+      containers:
+        - name: intern
+          image: "docker.io/msvetnikov/intern:2.0"
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: intern
+          ports:
+            - containerPort: 8000
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 20
