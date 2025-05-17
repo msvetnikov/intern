@@ -1,0 +1,10 @@
+---
+docker_app_image: "docker.io/msvetnikov/intern:2.0"
+docker_containers_count: 3
+
+docker_registry_username: "msvetnikov"
+docker_registry_password: "..."
+
+docker_packages:
+  - docker-ce
+  - docker-ce-cli

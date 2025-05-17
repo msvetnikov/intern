@@ -1,0 +1,7 @@
+---
+- name: Install docker and nginx
+  hosts: intern
+  become: true
+  become_method: sudo
+  roles:
+    - docker

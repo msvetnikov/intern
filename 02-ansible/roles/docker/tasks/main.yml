@@ -1,0 +1,31 @@
+---
+- name: Add Docker GPG key
+  ansible.builtin.apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: Add Docker apt repository
+  ansible.builtin.apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu jammy stable
+    state: present
+
+- name: Install Docker packages
+  ansible.builtin.apt:
+    name: "{{ docker_packages }}"
+    state: present
+    update_cache: true
+
+- name: Login to registry
+  community.docker.docker_login:
+    username: "{{ docker_registry_username }}"
+    password: "{{ docker_registry_password }}"
+
+- name: Run 3 replicas of {{ docker_app_image }}
+  community.docker.docker_container:
+    name: "intern_{{ item }}"
+    image: "{{ docker_app_image }}"
+    state: started
+    restart_policy: always
+    ports:
+      - "{{ 8000 + item }}:8000"
+  loop: "{{ range(0, 3) | list }}"
